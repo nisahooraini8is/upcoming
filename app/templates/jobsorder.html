@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+{% block content %}
+<style>
+     .active-button {
+    background-color: green;
+  }
+   .btn-arc {
+    height: 30px;
+    margin-top: 7px;
+    margin-right: 7px;
+    background: none;
+    color: black;}
+
+.cd-btn {
+  background: linear-gradient(0deg, #19355f 10%, #4372b8 100%)!important;
+  border: none;
+  outline: none;
+  color: #ffff !important;
+  transition: background-color 1s;
+  border-bottom : 1ps solid #2d8c56;
+}
+
+.cd-btn:hover {
+  background: linear-gradient(-90deg, #19355f 10%, #4372b8 100%)!important;
+}
+   button{
+    border: none;
+    border-bottom: 1px solid black;
+    border-radius: 0px!important;
+    }
+
+    .cd-btn a{
+     color: #ffff !important;
+    }
+    p{
+    margin-left:10px;
+    color:black;
+    }
+    .order-scroll{
+    border-radius:10px;
+    list-style:none;
+    padding:0px 10px;
+    }
+
+
+ tr{
+   margin-top:20px;
+   border-bottom: 1px solid black;
+
+   }
+  th{
+  text-align:center;
+  color: #19355f;
+    padding:5px
+  }
+   td{
+  text-align:center;
+  color: #19355f;
+    padding:5px;
+    cursor: pointer;
+  }
+   .list-item:hover{
+       background-color: #7fba96;
+   }
+    .candidate-row:hover{
+       background-color: #7fba96;
+   }
+
+
+.card .card-header{
+color:black;
+}
+.pagination{
+justify-content: flex-end;
+}
+
+</style>
+    <div class="content">
+        <div class="row">
+             <div class="col-lg-12">
+                <div class="card card-chart">
+                   <div class="card-header">
+     <div>
+         <div style="display:flex; justify-content:space-between; align-items:center;">
+           <div style="display:flex; justify-contnent:space-between">
+                <form action="{{ url_for('jobOders') }}" method="">
+              <div class="card-header" style="margin-top:10px;">
+                <button class="card-title {% if active_url == 'jobOders' %}active-button{% endif %}"
+                  id="selected-button">Jobs Order</button>
+              </div>
+            </form>
+           </div>
+
+         {% if url_for('jobOders') == request.path %}
+        <div class="card-header" style="display:flex;">
+            <button class="btn-arc" id="show">
+                <a href="/jobOders?show_archived=1"> Show Archive</a>
+            </button>
+             <button style="display:none" class="btn-arc" id="hide">
+                <a href="/jobOders"> Hide Archive</a>
+            </button>
+
+            <button class="card-title cd-btn" id="candidate-button">
+                <a href="/onereporting"><i class="fas fa-plus"></i> Add Job Orders</a>
+            </button>
+
+
+        </div>
+
+         {% endif %}
+
+
+
+    </div>
+
+<form method="POST" action="{{ url_for('archive_jobs') }}">
+    <div class="order-scroll">
+              <button id="archive-btn" type="submit" style="display: none;
+    background: red;
+    padding: 3px 24px;
+    color: white;
+    border-bottom: none;
+    margin-left: 5px;">Archive</button>
+              <button id="unarchive-btn" type="submit" style="display: none;
+    background: red;
+    padding: 3px 14px;
+    color: white;
+    border-bottom: none;
+    margin-left: 5px;">UnArchive</button>
+
+        <table style="margin:auto;">
+            <thead class=" text-primary">
+                <tr>
+                    <th scope="col" width="20px">Select</th>
+                    <th scope="col" width="250px">Posted On</th>
+                    <th scope="col" width="150px">Pay Rate</th>
+                    <th scope="col" width="150px">Shift</th>
+                    <th scope="col" width="40px">Slots</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job_order in jobsorder %}
+                {% if job_order.vacancy > 0 %}
+                <tr
+                    data-toggle="tooltip"
+                    class="list-item red-tooltip"
+                    data-id="{{ job_order.company_id }}"
+                    data-archived="{{ job_order.archived }}"
+                >
+                    <td>
+                        <input type="checkbox" name="selected_jobs[]" value="{{ job_order.id }}">
+                    </td>
+                    <td data-toggle="tooltip" title="click to select candidates" onclick="openUrl('/editjoborder/{{ job_order.id }}')">
+                        <span style="color: blue;">{{ job_order.created_at.strftime('%m-%d-%Y') }}</span><br>
+                        <span style="font-weight: 600">{{ job_order.company }}</span><br>
+                        needs: {{ job_order.title }}
+                    </td>
+                    <td data-toggle="tooltip" title="click to select candidates" onclick="openUrl('/editjoborder/{{ job_order.id }}')">${{ job_order.payrate }} ({{ job_order.salarytype }})</td>
+                    <td>{{ job_order.starttime }} to {{ job_order.endtime }}</td>
+                    <td class="text-center">{{ job_order.filled_vacancy }}/{{ job_order.vacancy }}</td>
+
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        <li class="page-item{% if page == 1 %} disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('jobOders', page=page-1, **pagination_links) }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% if start_page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('jobOders', page=1, **pagination_links) }}">1</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+        {% endif %}
+        {% for p in range(start_page, end_page + 1) %}
+            <li class="page-item{% if p == page %} active{% endif %}">
+                <a class="page-link" href="{{ url_for('jobOders', page=p, **pagination_links) }}">{{ p }}</a>
+            </li>
+        {% endfor %}
+        {% if end_page < total_pages %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('jobOders', page=total_pages, **pagination_links) }}">{{ total_pages }}</a>
+            </li>
+        {% endif %}
+        <li class="page-item{% if page == total_pages %} disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('jobOders', page=page+1, **pagination_links) }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+    </div>
+{% endblock content %}
+{% block javascripts %}
+<script>
+     function openUrl(url) {
+     console.log(url)
+        window.location.href = url;
+    }
+
+    window.addEventListener('load', function () {
+      console.log("hello nisa")
+      var currentUrl = window.location.pathname;
+      var candidateButton = document.getElementById("candidate-button");
+      var selectedButton = document.getElementById("selected-button");
+      var registeredButton = document.getElementById("registered-button");
+
+      if (currentUrl === "{{ url_for('Companies') }}") {
+        candidateButton.style.backgroundColor = "#19355f";
+        candidateButton.style.color = "#ffffff";
+      }
+      if (currentUrl === "{{ url_for('jobOders') }}") {
+        selectedButton.style.backgroundColor = "#19355f";
+        selectedButton.style.color = "#ffffff";
+      }
+
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the current URL
+        var url = window.location.href;
+        console.log(url)
+
+        // Check if the URL contains the show_archived parameter
+        if (url.indexOf('show_archived=1') !== -1) {
+            // Show the "Hide Archive" button
+            document.getElementById('hide').style.display = 'inline-block';
+            // Hide the "Show Archive" button
+            document.getElementById('show').style.display = 'none';
+        } else {
+            // Hide the "Hide Archive" button
+            document.getElementById('hide').style.display = 'none';
+            // Show the "Show Archive" button
+            document.getElementById('show').style.display = 'inline-block';
+        }
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"][name="selected_jobs[]"]');
+        var archiveBtn = document.getElementById('archive-btn');
+        var unarchiveBtn = document.getElementById('unarchive-btn');
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                var atLeastOneChecked = Array.prototype.some.call(checkboxes, function(checkbox) {
+                    return checkbox.checked;
+                });
+                if (atLeastOneChecked) {
+                    if ("{{ request.args.get('show_archived') }}" === "1") {
+                        unarchiveBtn.style.display = 'block';
+                    } else {
+                        archiveBtn.style.display = 'block';
+                    }
+                } else {
+                    archiveBtn.style.display = 'none';
+                    unarchiveBtn.style.display = 'none';
+                }
+            });
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"][name="selected_company[]"]');
+        var archiveBtn = document.getElementById('carchive-btn');
+        var unarchiveBtn = document.getElementById('cunarchive-btn');
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                var atLeastOneChecked = Array.prototype.some.call(checkboxes, function(checkbox) {
+                    return checkbox.checked;
+                });
+                if (atLeastOneChecked) {
+                   archiveBtn.style.display = 'block';
+                    unarchiveBtn.style.display = 'block';
+                } else {
+                    archiveBtn.style.display = 'none';
+                    unarchiveBtn.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+
+
+{% endblock javascripts %}
